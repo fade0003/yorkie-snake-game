@@ -4,23 +4,44 @@ const scoreDisplay = document.getElementById('score');
 const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
-let snake = [{ x: 10, y: 10 }];
-let direction = { x: 0, y: 0 };
+let snake = [
+    { x: 10, y: 10, type: 'head' },
+    { x: 9, y: 10, type: 'middle' },
+    { x: 8, y: 10, type: 'tail' }
+];
+let direction = { x: 1, y: 0 };
 let food = { x: 15, y: 15 };
 let score = 0;
+
+// Load images
+const headImage = new Image();
+const middleImage = new Image();
+const tailImage = new Image();
+const foodImage = new Image();
+headImage.src = 'yorkie_head.png';
+middleImage.src = 'yorkie_middle.png';
+tailImage.src = 'yorkie_tail.png';
+foodImage.src = 'food.png';
+
+// Wait for images to load
+Promise.all([headImage, middleImage, tailImage, foodImage].map(img => new Promise(resolve => img.onload = resolve))).then(draw);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw snake
-    ctx.fillStyle = 'brown';
     snake.forEach(segment => {
-        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        if (segment.type === 'head') {
+            ctx.drawImage(headImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        } else if (segment.type === 'middle') {
+            ctx.drawImage(middleImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        } else if (segment.type === 'tail') {
+            ctx.drawImage(tailImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        }
     });
 
     // Draw food
-    ctx.fillStyle = 'red';
-    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    ctx.drawImage(foodImage, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
     // Draw score
     scoreDisplay.textContent = `Score: ${score}`;
@@ -42,7 +63,18 @@ function update() {
     }
 
     // Add new head
-    snake.unshift(head);
+    snake.unshift({ x: head.x, y: head.y, type: 'head' });
+
+    // Update segment types
+    snake = snake.map((segment, index) => {
+        if (index === 0) {
+            return { ...segment, type: 'head' };
+        } else if (index === snake.length - 1) {
+            return { ...segment, type: 'tail' };
+        } else {
+            return { ...segment, type: 'middle' };
+        }
+    });
 
     // Check for food collision
     if (head.x === food.x && head.y === food.y) {
@@ -63,8 +95,12 @@ function placeFood() {
 }
 
 function resetGame() {
-    snake = [{ x: 10, y: 10 }];
-    direction = { x: 0, y: 0 };
+    snake = [
+        { x: 10, y: 10, type: 'head' },
+        { x: 9, y: 10, type: 'middle' },
+        { x: 8, y: 10, type: 'tail' }
+    ];
+    direction = { x: 1, y: 0 };
     score = 0;
     draw();
 }
