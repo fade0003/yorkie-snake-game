@@ -1,36 +1,53 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
-const gridSize = 20;
+const livesDisplay = document.getElementById('lives');
+const gridSize = 40; // Increased to 40 (20 * 2)
 const tileCount = canvas.width / gridSize;
 
-let snake = [{ x: 10, y: 10 }];
-let direction = { x: 0, y: 0 };
+let snake = [
+    { x: 10, y: 10, type: 'head' },
+    { x: 9, y: 10, type: 'middle' },
+    { x: 8, y: 10, type: 'tail' }
+];
+let direction = { x: 1, y: 0 };
 let food = { x: 15, y: 15 };
 let score = 0;
+let lives = 5;
 
 // Load images
-const yorkieImage = new Image();
+const headImage = new Image();
+const middleImage = new Image();
+const tailImage = new Image();
 const foodImage = new Image();
-yorkieImage.src = 'yorkie.png';
+headImage.src = 'yorkie_head.png';
+middleImage.src = 'yorkie_middle.png';
+tailImage.src = 'yorkie_tail.png';
 foodImage.src = 'food.png';
 
 // Wait for images to load
-Promise.all([yorkieImage, foodImage].map(img => new Promise(resolve => img.onload = resolve))).then(draw);
+Promise.all([headImage, middleImage, tailImage, foodImage].map(img => new Promise(resolve => img.onload = resolve))).then(draw);
 
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw snake
     snake.forEach(segment => {
-        ctx.drawImage(yorkieImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        if (segment.type === 'head') {
+            ctx.drawImage(headImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        } else if (segment.type === 'middle') {
+            ctx.drawImage(middleImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        } else if (segment.type === 'tail') {
+            ctx.drawImage(tailImage, segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+        }
     });
 
     // Draw food
     ctx.drawImage(foodImage, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
-    // Draw score
+    // Draw score and lives
     scoreDisplay.textContent = `Score: ${score}`;
+    livesDisplay.textContent = `Lives: ${lives}`;
 }
 
 function update() {
@@ -38,18 +55,39 @@ function update() {
 
     // Check for collision with walls
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-        resetGame();
+        lives--;
+        if (lives <= 0) {
+            resetGame();
+        } else {
+            resetSnake();
+        }
         return;
     }
 
     // Check for collision with self
-    if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
-        resetGame();
+    if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
+        lives--;
+        if (lives <= 0) {
+            resetGame();
+        } else {
+            resetSnake();
+        }
         return;
     }
 
     // Add new head
-    snake.unshift(head);
+    snake.unshift({ x: head.x, y: head.y, type: 'head' });
+
+    // Update segment types
+    snake = snake.map((segment, index) => {
+        if (index === 0) {
+            return { ...segment, type: 'head' };
+        } else if (index === snake.length - 1) {
+            return { ...segment, type: 'tail' };
+        } else {
+            return { ...segment, type: 'middle' };
+        }
+    });
 
     // Check for food collision
     if (head.x === food.x && head.y === food.y) {
@@ -70,9 +108,24 @@ function placeFood() {
 }
 
 function resetGame() {
-    snake = [{ x: 10, y: 10 }];
-    direction = { x: 0, y: 0 };
+    snake = [
+        { x: 10, y: 10, type: 'head' },
+        { x: 9, y: 10, type: 'middle' },
+        { x: 8, y: 10, type: 'tail' }
+    ];
+    direction = { x: 1, y: 0 };
     score = 0;
+    lives = 5;
+    draw();
+}
+
+function resetSnake() {
+    snake = [
+        { x: 10, y: 10, type: 'head' },
+        { x: 9, y: 10, type: 'middle' },
+        { x: 8, y: 10, type: 'tail' }
+    ];
+    direction = { x: 1, y: 0 };
     draw();
 }
 
