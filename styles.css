@@ -13,19 +13,12 @@ body {
     height: 400px;
 }
 
-#score, #lives {
+#score {
     position: absolute;
     top: 10px;
+    left: 10px;
     font-size: 20px;
     color: #333;
-}
-
-#score {
-    left: 10px;
-}
-
-#lives {
-    right: 10px;
 }
 
 #game-canvas {
