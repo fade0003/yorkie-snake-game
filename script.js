@@ -1,8 +1,7 @@
 const canvas = document.getElementById('game-canvas');
 const ctx = canvas.getContext('2d');
 const scoreDisplay = document.getElementById('score');
-const livesDisplay = document.getElementById('lives');
-const gridSize = 40; // Increased to 40 (20 * 2)
+const gridSize = 20;
 const tileCount = canvas.width / gridSize;
 
 let snake = [
@@ -13,7 +12,6 @@ let snake = [
 let direction = { x: 1, y: 0 };
 let food = { x: 15, y: 15 };
 let score = 0;
-let lives = 5;
 
 // Load images
 const headImage = new Image();
@@ -45,9 +43,8 @@ function draw() {
     // Draw food
     ctx.drawImage(foodImage, food.x * gridSize, food.y * gridSize, gridSize, gridSize);
 
-    // Draw score and lives
+    // Draw score
     scoreDisplay.textContent = `Score: ${score}`;
-    livesDisplay.textContent = `Lives: ${lives}`;
 }
 
 function update() {
@@ -55,23 +52,13 @@ function update() {
 
     // Check for collision with walls
     if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
-        lives--;
-        if (lives <= 0) {
-            resetGame();
-        } else {
-            resetSnake();
-        }
+        resetGame();
         return;
     }
 
     // Check for collision with self
-    if (snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y)) {
-        lives--;
-        if (lives <= 0) {
-            resetGame();
-        } else {
-            resetSnake();
-        }
+    if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        resetGame();
         return;
     }
 
@@ -115,17 +102,6 @@ function resetGame() {
     ];
     direction = { x: 1, y: 0 };
     score = 0;
-    lives = 5;
-    draw();
-}
-
-function resetSnake() {
-    snake = [
-        { x: 10, y: 10, type: 'head' },
-        { x: 9, y: 10, type: 'middle' },
-        { x: 8, y: 10, type: 'tail' }
-    ];
-    direction = { x: 1, y: 0 };
     draw();
 }
 
